@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Shotlist Engine — Wizard (офлайн)</title>
+  <style>
+    :root{
+      --bg:#0b0d10; --panel:#10141a; --text:#e9eef6; --muted:#a9b4c2;
+      --line:rgba(255,255,255,.08);
+      --danger:#ff3b30; --warn:#ffcc00; --ok:#34c759; --accent:#ff2d55;
+      --shadow: 0 10px 25px rgba(0,0,0,.35); --r:16px;
+      --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,Arial,sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--sans); color:var(--text); background:
+      radial-gradient(1100px 650px at 35% -10%, rgba(255,45,85,.18), transparent 55%),
+      radial-gradient(900px 700px at 100% 0%, rgba(52,199,89,.10), transparent 55%),
+      var(--bg);
+      -webkit-font-smoothing:antialiased; line-height:1.35;
+    }
+    header{position:sticky; top:0; z-index:50;
+      background:linear-gradient(to bottom, rgba(11,13,16,.96), rgba(11,13,16,.70));
+      backdrop-filter: blur(10px); border-bottom:1px solid var(--line);}
+    .wrap{max-width:980px; margin:0 auto; padding:12px 14px;}
+    .top{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+    .brand{display:flex; align-items:center; gap:10px;}
+    .dot{width:10px;height:10px;border-radius:50%; background:var(--accent); box-shadow:0 0 0 6px rgba(255,45,85,.12);}
+    h1{margin:0; font-size:16px}
+    .sub{margin:2px 0 0; color:var(--muted); font-size:12px}
+    .btnrow{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+    button{
+      border:1px solid var(--line); background:rgba(255,255,255,.04); color:var(--text);
+      padding:10px 12px; border-radius:12px; font-size:13px; cursor:pointer;
+      transition:.15s transform, .15s background, .15s border; user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active{transform:scale(.98)}
+    button.primary{background:rgba(255,45,85,.14); border-color:rgba(255,45,85,.35);}
+    button.good{background:rgba(52,199,89,.12); border-color:rgba(52,199,89,.35);}
+    button.warn{background:rgba(255,204,0,.10); border-color:rgba(255,204,0,.35);}
+    button.danger{background:rgba(255,59,48,.12); border-color:rgba(255,59,48,.35);}
+    button.ghost{background:transparent;}
+    button:disabled{opacity:.45; cursor:not-allowed; transform:none;}
+    main{padding:14px 14px 120px;}
+    .card{
+      max-width:980px; margin:0 auto 12px;
+      background:linear-gradient(to bottom, rgba(16,20,26,.94), rgba(16,20,26,.80));
+      border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); overflow:hidden;
+    }
+    .hd{padding:14px 14px 10px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
+    .hd h2{margin:0; font-size:14px;}
+    .hd .mini{color:var(--muted); font-size:12px; margin-top:4px}
+    .bd{padding:14px;}
+    .hint{margin:0 0 10px; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.03); border:1px solid var(--line); color:var(--muted); font-size:12px;}
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px;}
+    input[type="text"], input[type="number"], textarea, select{
+      width:100%; border:1px solid var(--line); background:rgba(0,0,0,.18); color:var(--text);
+      padding:10px 12px; border-radius:12px; font-size:14px; outline:none;
+    }
+    textarea{min-height:72px; resize:vertical}
+    .row{display:grid; gap:10px;}
+    @media(min-width:860px){ .row.two{grid-template-columns:1fr 1fr;} .row.three{grid-template-columns:1fr 1fr 1fr;} }
+    .tabs{display:flex; gap:8px; flex-wrap:wrap; padding:10px 14px; border-top:1px solid var(--line); background:rgba(0,0,0,.12);}
+    .stepBtn{display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; border:1px solid var(--line);
+      background:rgba(0,0,0,.18); color:var(--muted); font-size:12px; cursor:pointer; user-select:none; -webkit-tap-highlight-color: transparent;}
+    .stepBtn.active{border-color:rgba(255,45,85,.45); background:rgba(255,45,85,.10); color:#ffd1da;}
+    .stepBtn.locked{opacity:.5; cursor:not-allowed;}
+    .stepBtn .n{width:18px;height:18px;border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-family:var(--mono);
+      font-size:11px; border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);}
+    .stepBtn.active .n{border-color:rgba(255,45,85,.45); color:#ffd1da;}
+    .list{display:flex; flex-direction:column; gap:10px;}
+    .item{border:1px solid var(--line); background:rgba(0,0,0,.16); border-radius:14px; padding:12px;}
+    .itemTop{display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap;}
+    .badge{font-family:var(--mono); font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);}
+    .badge.red{border-color:rgba(255,45,85,.35); background:rgba(255,45,85,.08); color:#ffd1da;}
+    .badge.green{border-color:rgba(52,199,89,.35); background:rgba(52,199,89,.07); color:#cbf8d7;}
+    .badge.yellow{border-color:rgba(255,204,0,.35); background:rgba(255,204,0,.07); color:#fff3bf;}
+    details summary{cursor:pointer; list-style:none; font-weight:600; user-select:none; -webkit-tap-highlight-color: transparent;}
+    details summary::-webkit-details-marker{display:none}
+    .issues{margin-top:10px; border:1px solid var(--line); background:rgba(255,255,255,.03); border-radius:14px; padding:10px 12px;}
+    .issues h4{margin:0 0 6px; font-size:12px;}
+    .issues ul{margin:0; padding-left:18px; color:var(--muted); font-size:12px;}
+    .footerbar{position:fixed; left:0; right:0; bottom:0; background:linear-gradient(to top, rgba(11,13,16,.96), rgba(11,13,16,.60));
+      backdrop-filter: blur(10px); border-top:1px solid var(--line); padding:10px 14px env(safe-area-inset-bottom); z-index:60;}
+    .footerbar .wrap{max-width:980px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+    .small{font-size:12px; color:var(--muted);}
+    .hidden{display:none}
+    .printBox{border:1px solid var(--line); border-radius:14px; background:rgba(0,0,0,.16); padding:12px; font-size:13px; color:var(--text);}
+    .printBox pre{white-space:pre-wrap; margin:0; font-family:var(--mono); font-size:12px; color:var(--muted);}
+    /* Обычный режим: кнопки ВСЕГДА видны */
+    header, .footerbar { display: block !important; }
+    .hidden { display: none !important; }
+    
+    /* Режим печати: чисто, аккуратно и тем же шрифтом, что в превью */
+    @media print {
+      @page {
+        margin: 1.5cm; /* Добавляем аккуратные поля для принтера */
+      }
+      body { 
+        background: white !important; 
+        color: black !important; 
+      }
+      /* Скрываем всё лишнее: кнопки, шапку, панель навигации, ошибки */
+      header, .footerbar, main .card:not(#stepPrint), .btnrow, .hd, .hint, .issues, #allIssues, .badge { 
+        display: none !important; 
+      }
+      main { padding: 0 !important; margin: 0 !important; }
+      .card { border: none !important; box-shadow: none !important; background: white !important; max-width: 100% !important; }
+      .printBox { border: none !important; background: white !important; padding: 0 !important; }
+      
+      /* Настройка текста превью: шрифт как в окне превью */
+      #printPreview { 
+        color: black !important; 
+        white-space: pre-wrap !important; 
+        font-size: 10pt !important; /* Оптимальный размер для печати А4 */
+        /* Используем системный моноширинный стек шрифтов */
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+        line-height: 1.4 !important;
+      }
+      /* Скрываем слово "Превью" в заголовке окна печати */
+      .printBox b { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="top">
+        <div class="brand">
+          <div class="dot"></div>
+          <div>
+            <h1>Shotlist Engine — Wizard</h1>
+            <div class="sub">Пошаговый режим: Проект → Локации → Сцены → Шоты → Печать</div>
+          </div>
+        </div>
+        <!-- Кнопка сброса добавлена сюда -->
+        <div class="btnrow">
+          <button class="danger ghost" id="btnResetAll" style="font-size: 11px; padding: 6px 10px;">Сбросить проект</button>
+        </div>
+      </div>
+    </div>
+    <div class="tabs wrap" id="tabs"></div>
+  </header>
+  
+<main>
+  <section class="card" id="stepProject">
+    <div class="hd">
+      <div>
+        <h2>Шаг 1. Проект</h2>
+        <div class="mini">Быстрый прогон: кто, что, зачем. Дальше уже собираем мясо.</div>
+      </div>
+      <div class="badge" id="projBadge">—</div>
+    </div>
+    <div class="bd">
+      <div class="hint">Заполни базу. Это не “для галочки”. Это чтобы потом не вылавливать недоснятое в монтаже.</div>
+
+      <label>Название проекта *</label>
+      <input id="pName" type="text" placeholder="Напр.: Выпускной 2026"/>
+
+      <div class="row two">
+        <div>
+          <label>Тип видео *</label>
+          <select id="pContentType">
+            <option value="story">Мини‑фильм</option>
+            <option value="clip">Клип</option>
+            <option value="ad">Реклама</option>
+            <option value="letter">Видео-письмо</option>
+          </select>
+        </div>
+        <div>
+          <label>Хронометраж (сек) *</label>
+          <input id="pDuration" type="number" min="5" step="1" placeholder="Напр.: 900"/>
+        </div>
+      </div>
+
+      <label>Сюжет *</label>
+      <textarea id="pStory" placeholder="2–6 предложений: что происходит и какие ключевые моменты нужно снять."></textarea>
+      <div class="mini" style="margin-top:6px;color:var(--muted)">Это не сценарий. Это страховка.</div>
+
+<div class="row two">
+        <div>
+          <label>Локаций (шт) *</label>
+          <input id="pLocCount" type="number" min="1" step="1" placeholder="Напр.: 2"/>
+        </div>
+        <div>
+          <label>Сцен (шт) *</label>
+          <input id="pSceneCount" type="number" min="1" step="1" placeholder="Напр.: 3"/>
+        </div>
+      </div>
+
+      <div class="issues hidden" id="projIssues">
+        <h4>Где проёб</h4>
+        <ul id="projIssuesList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="card hidden" id="stepLocations">
+    <div class="hd">
+      <div>
+        <h2>Шаг 2. Локации</h2>
+        <div class="mini">Сцены должны привязываться к реальности.</div>
+      </div>
+      <div class="badge" id="locBadge">—</div>
+    </div>
+    <div class="bd">
+      <div class="hint">Добавь список локаций. Если число не совпадает с планом, будет предупреждение.</div>
+      <div class="btnrow"><button class="primary" id="btnAddLoc">+ Локация</button></div>
+      <div class="list" id="locList" style="margin-top:10px"></div>
+      <div class="issues hidden" id="locIssues"><h4>Где проёб</h4><ul id="locIssuesList"></ul></div>
+    </div>
+  </section>
+
+  <section class="card hidden" id="stepScenes">
+    <div class="hd">
+      <div>
+        <h2>Шаг 3. Сцены</h2>
+        <div class="mini">Функции сцен зависят от типа контента.</div>
+      </div>
+      <div class="badge" id="scBadge">—</div>
+    </div>
+    <div class="bd">
+      <div class="hint">Сначала каркас сцены (цель + изменение), потом кадры.</div>
+      <div class="btnrow">
+        <button class="primary" id="btnAutoScenes">Автоскелет по типу</button>
+        <button class="primary" id="btnAiScenes" title="Требуется интернет">Сцены из фабулы (AI)</button>
+        <button class="primary" id="btnAddScene">+ Сцена</button>
+      </div>
+      <div class="list" id="sceneList" style="margin-top:10px"></div>
+      <div class="issues hidden" id="scIssues"><h4>Где проёб</h4><ul id="scIssuesList"></ul></div>
+    </div>
+  </section>
+
+  <section class="card hidden" id="stepShots">
+    <div class="hd">
+      <div>
+        <h2>Шаг 4. Шоты (A/B)</h2>
+        <div class="mini">Узлы появляются при A-roll ≥ 2. B-roll привязывается.</div>
+      </div>
+      <div class="badge" id="shBadge">—</div>
+    </div>
+    <div class="bd">
+      <div class="hint">A-roll = скелет. B-roll = клей/ритм/акцент. Не наоборот.</div>
+      <div class="list" id="shotsByScene"></div>
+      <div class="issues hidden" id="shIssues"><h4>Где проёб</h4><ul id="shIssuesList"></ul></div>
+    </div>
+  </section>
+
+  <section class="card hidden" id="stepPrint">
+    <div class="hd">
+      <div>
+        <h2>Шаг 5. Итог и печать</h2>
+        <div class="mini">Печать доступна только без блокеров.</div>
+      </div>
+      <div class="badge" id="prBadge">—</div>
+    </div>
+    <div class="bd">
+      <div class="btnrow" style="margin-bottom:10px">
+        <button class="primary" id="btnValidate">Проверить всё</button>
+        <button class="good" id="btnPrint" disabled>Печать</button>
+        <button class="warn" id="btnCopyMD" disabled>Скопировать Markdown</button>
+      </div>
+      <div class="printBox"><b>Превью</b><pre id="printPreview">(нажми “Проверить всё”)</pre></div>
+      <div class="issues hidden" id="allIssues"><h4>Где проёб (сводка)</h4><ul id="allIssuesList"></ul></div>
+    </div>
+  </section>
+</main>
+
+<div class="footerbar">
+  <div class="wrap">
+    <div class="small" id="status">Готов.</div>
+    <div class="btnrow">
+      <button class="ghost" id="btnPrev">Назад</button>
+      <button class="primary" id="btnNext">Дальше</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileImport" accept="application/json" class="hidden"/>
+
+<script>
+(()=> {
+  const LS_KEY = "shotlist_engine_wizard_v1";
+  const GEMINI_KEY = "AIzaSyAc21SYXUgyiLPpMB5iKdxxR-sbecKbABU";
+  const $ = (id)=>document.getElementById(id);
+  const esc = (s)=>String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  const uid = (p)=> p + Math.random().toString(16).slice(2,10);
+
+  const LIB = {
+    sceneFunctions: {
+      ad: [
+        {v:"hook", t:"Хук"},
+        {v:"pain", t:"Боль / потребность"},
+        {v:"solution", t:"Решение"},
+        {v:"proof", t:"Доказательство / усиление"},
+        {v:"cta", t:"CTA"}
+      ],
+      clip: [
+        {v:"mood", t:"Ввод / настроение"},
+        {v:"rhythm", t:"Развитие через ритм"},
+        {v:"climax", t:"Кульминация"},
+        {v:"outro", t:"Финал / затухание"}
+      ],
+      story: [
+        {v:"exposition", t:"Экспозиция"},
+        {v:"context", t:"Контекст / ожидание"},
+        {v:"event", t:"Событие"},
+        {v:"reflection", t:"Рефлексия / последствия"},
+        {v:"final", t:"Финал"}
+      ],
+      letter: [
+        {v:"intro", t:"Введение"},
+        {v:"transition", t:"Переход"},
+        {v:"observations", t:"Наблюдения"},
+        {v:"climax", t:"Кульминация"},
+        {v:"final", t:"Финал"}
+      ],
+    },
+    light:["Естественный","Искусственный"],
+    sound:["Синхрон","Без синхрона","Отдельно/позже"],
+    aFunctions:[{v:"backbone",t:"Скелет сцены"},{v:"peak",t:"Эмоциональный пик"},{v:"transition",t:"Переход"},{v:"coverage",t:"Страховка"},{v:"contrast",t:"Контраст"}],
+    bFunctions:[{v:"cutcover",t:"Перекрытие склейки"},{v:"accent",t:"Смысловой акцент"},{v:"rhythm",t:"Ритм"},{v:"contrast",t:"Контраст"},{v:"air",t:"Воздух/пауза"},{v:"establish",t:"Establishing"}],
+    shotTypes:["Wide/Master","Medium","Close-up","Extreme close-up","Insert/Detail","Over-shoulder","POV","Tracking","Handheld","Static","Slow push-in","Whip-pan","Match cut / wipe"],
+    movements:["Static","Handheld","Tracking","Pan","Tilt","Dolly","Crane","Gimbal","Slow push-in","Whip-pan"],
+    sizes:["Wide/Master","Medium","Close-up","Extreme close-up","Insert/Detail"],
+  };
+
+  const state = {
+    step: 0,
+    project: {name:"",contentType:"story",durationSec:"",story:"",locCount:"",sceneCount:""},
+    locations: [],
+    scenes: []
+  };
+
+  function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+  function load(){ try{ const raw = localStorage.getItem(LS_KEY); if(!raw) return; const data = JSON.parse(raw);
+    if(data && data.project && Array.isArray(data.scenes)) Object.assign(state, data); }catch(e){} }
+
+  const steps = [
+    {id:"stepProject", title:"Проект"},
+    {id:"stepLocations", title:"Локации"},
+    {id:"stepScenes", title:"Сцены"},
+    {id:"stepShots", title:"Шоты"},
+    {id:"stepPrint", title:"Печать"}
+  ];
+
+  function renderTabs(){
+    const root = $("tabs");
+    root.innerHTML = steps.map((s, i)=>{
+      const locked = !canGoToStep(i);
+      const cls = ["stepBtn", i===state.step?"active":"", locked?"locked":""].join(" ").trim();
+      return `<div class="${cls}" data-step="${i}"><span class="n">${i+1}</span><span>${esc(s.title)}</span></div>`;
+    }).join("");
+    root.querySelectorAll(".stepBtn").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const i = Number(btn.getAttribute("data-step"));
+        if(!canGoToStep(i)) return;
+        gotoStep(i);
+      });
+    });
+  }
+
+  function showOnly(stepIndex){
+    steps.forEach((s,i)=> $(s.id).classList.toggle("hidden", i!==stepIndex));
+    $("btnPrev").disabled = stepIndex===0;
+    $("btnNext").textContent = stepIndex===steps.length-1 ? "Готово" : "Дальше";
+    renderTabs();
+  }
+
+  function gotoStep(i){ state.step = i; save(); showOnly(i); renderAll(); }
+
+  function canGoToStep(i){
+    if(i===0) return true;
+    pullProjectFromUI();
+    const v1 = validateProject(); 
+    if(i>=1 && v1.blockers.length) return false;
+    
+    if(i>=2) {
+      const v2 = validateLocations();
+      if(v2.blockers.length) return false;
+    }
+    
+    if(i>=3) {
+      const v3 = validateScenes();
+      if(v3.blockers.length) return false;
+    }
+
+    if(i>=4){ 
+      const vAll = validateAll(); 
+      if(vAll.blockers.length) return false; 
+    }
+    return true;
+  }
+
+  function syncProjectUI(){
+    const p = state.project;
+    $("pName").value = p.name || "";
+    $("pContentType").value = p.contentType || "story";
+    $("pDuration").value = p.durationSec || "";
+    $("pStory").value = p.story||"";
+    $("pLocCount").value = p.locCount || "";
+    $("pSceneCount").value = p.sceneCount || "";
+  }
+
+  function bindProject(){
+    const bind = (id, key)=>{
+      $(id).addEventListener("input", ()=>{
+        state.project[key] = $(id).value;
+        save();
+        renderProjectValidation();
+        renderWizardLocks();
+      });
+    };
+    bind("pName","name");
+    bind("pContentType","contentType");
+    bind("pDuration","durationSec");
+    bind("pStory","story");
+    bind("pLocCount","locCount");
+    bind("pSceneCount","sceneCount");
+  }
+
+  function pullProjectFromUI(){
+    const p = state.project;
+    const safeVal = (id)=> $(id) ? $(id).value : "";
+    p.name = safeVal("pName");
+    p.contentType = safeVal("pContentType") || "story";
+    p.durationSec = safeVal("pDuration");
+    p.story = safeVal("pStory");
+    p.locCount = safeVal("pLocCount");
+    p.sceneCount = safeVal("pSceneCount");
+  }
+
+  function validateProject(){
+    const p = state.project;
+    const blockers = [], warns = [];
+    const req = (val, msg)=>{ if(!String(val||"").trim()) blockers.push(msg); };
+    
+    req(p.name, "Проект: нет названия.");
+    req(p.durationSec, "Проект: нет хронометража (сек).");
+    req(p.story, "Проект: нет сюжета.");
+    req(p.locCount, "Проект: не задано количество локаций.");
+    req(p.sceneCount, "Проект: не задано количество сцен.");
+    
+    const dur = Number(p.durationSec||0), scenes = Number(p.sceneCount||0), locs = Number(p.locCount||0);
+    if(dur && scenes && dur<=60 && scenes>10) warns.push("План: многовато сцен для короткого ролика.");
+    if(dur && locs && dur<=60 && locs>3) warns.push("План: многовато локаций для короткого ролика.");
+    return {blockers, warns};
+  }
+
+  function renderProjectValidation(){
+    const v = validateProject(), badge = $("projBadge");
+    if(v.blockers.length){ badge.className="badge red"; badge.textContent="Блокирует"; }
+    else if(v.warns.length){ badge.className="badge yellow"; badge.textContent="Есть риски"; }
+    else { badge.className="badge green"; badge.textContent="Ок"; }
+    $("projIssues").classList.toggle("hidden", v.blockers.length===0 && v.warns.length===0);
+    $("projIssuesList").innerHTML = [...v.blockers, ...v.warns].map(x=>`<li>${esc(x)}</li>`).join("");
+  }
+
+  // Locations
+    function addLocation(name=""){ 
+      state.locations.push({id:uid("L"), name:name||""}); 
+      save(); 
+      renderLocations(); // Добавлено: мгновенная отрисовка новых полей
+      renderLocationsValidation(); 
+      renderBadges(); 
+    }
+    
+    function deleteLocation(id){
+    state.locations = state.locations.filter(l=>l.id!==id);
+    state.scenes.forEach(s=>{ if(s.locationId===id) s.locationId=""; });
+    save(); renderAll();
+  }
+      function renderLocations(){
+        const list = $("locList");
+        list.innerHTML = state.locations.map((l,idx)=>`
+      <div class="item">
+        <div class="itemTop">
+          <div><div class="badge">L${idx+1}</div></div>
+          <div class="btnrow"><button class="danger" data-del-loc="${l.id}">Удалить</button></div>
+        </div>
+        <label>Название локации *</label>
+        <input type="text" value="${esc(l.name)}" data-loc-name="${l.id}" placeholder="Вход / зал / улица"/>
+      </div>`).join("") || `<div class="hint">Пока локаций нет. Нажми “+ Локация”.</div>`;
+        
+        list.querySelectorAll("[data-loc-name]").forEach(inp=>{
+          inp.addEventListener("input", ()=>{
+            const id = inp.getAttribute("data-loc-name");
+            const l = state.locations.find(x=>x.id===id);
+            if(l) l.name = inp.value;
+            save();
+            // Обновляем только валидацию и бейджи, не перерисовывая список
+            renderLocationsValidation(); 
+            renderBadges();
+          });
+        });
+        list.querySelectorAll("[data-del-loc]").forEach(btn=> btn.addEventListener("click", ()=> deleteLocation(btn.getAttribute("data-del-loc")) ));
+      }
+      
+  function validateLocations(){
+    const blockers = [], warns = [];
+    const planned = Number(state.project.locCount||0);
+    if(state.locations.length===0) blockers.push("Локации: список пуст.");
+    state.locations.forEach((l, idx)=>{ if(!String(l.name||"").trim()) blockers.push(`Локации: L${idx+1} без названия.`); });
+    if(planned && state.locations.length !== planned) warns.push(`Локации: планировал ${planned}, сейчас ${state.locations.length}.`);
+    return {blockers, warns};
+  }
+  function renderLocationsValidation(){
+    const v = validateLocations(), badge = $("locBadge");
+    if(v.blockers.length){ badge.className="badge red"; badge.textContent="Блокирует"; }
+    else if(v.warns.length){ badge.className="badge yellow"; badge.textContent="Есть риски"; }
+    else { badge.className="badge green"; badge.textContent="Ок"; }
+    $("locIssues").classList.toggle("hidden", v.blockers.length===0 && v.warns.length===0);
+    $("locIssuesList").innerHTML = [...v.blockers, ...v.warns].map(x=>`<li>${esc(x)}</li>`).join("");
+  }
+
+  // Scenes
+  function addScene(preset={}){
+    state.scenes.push({
+      id: uid("SC"), title: preset.title || "Сцена",
+      func: preset.func || (LIB.sceneFunctions[state.project.contentType][0]?.v || "hook"),
+      locationId: preset.locationId || "", goal: preset.goal || "",
+      light: preset.light || "Естественный", sound: preset.sound || "Без синхрона",
+      props: preset.props || "", risks: preset.risks || "",
+      aShots: preset.aShots || [], bShots: preset.bShots || []
+    });
+    save(); renderAll();
+  }
+  function deleteScene(id){ state.scenes = state.scenes.filter(s=>s.id!==id); save(); renderAll(); }
+
+      function autoSkeleton(){
+        if(state.scenes.length && !confirm("Пересобрать сцены по шаблону? Текущие сцены будут заменены.")) return;
+        const t = state.project.contentType;
+        const loc0 = state.locations[0]?.id || "";
+        const loc1 = state.locations[1]?.id || loc0;
+        let presets = [];
+        
+        if(t === "ad") {
+          presets = [
+            {title:"Сцена 1: Хук", func:"hook", goal:"Первые 2–5 секунд. Захват внимания. Вопрос, визуальный удар, странная ситуация, конфликт. Задача: человек не листнул."},
+            {title:"Сцена 2: Боль", func:"pain", goal:"Проблема зрителя. Прямая или через образ. «Вот с этим ты живёшь, и тебе некомфортно»."},
+            {title:"Сцена 3: Решение", func:"solution", goal:"Продукт, услуга, герой, подход. «Вот как это решается»."},
+            {title:"Сцена 4: Доказательство", func:"proof", goal:"Кейсы, результат, визуальное подтверждение."},
+            {title:"Сцена 5: CTA", func:"cta", goal:"Что делать дальше. Чётко. Без поэзии."}
+          ];
+        } else if(t === "clip") {
+          presets = [
+            {title:"Сцена 1: Настроение", func:"mood", goal:"Визуальный тон, персонаж, сеттинг."},
+            {title:"Сцена 2: Развитие", func:"rhythm", goal:"Монтаж, повторы, мотивы, визуальные рифмы. История может быть фрагментарной или символической."},
+            {title:"Сцена 3: Пик", func:"climax", goal:"Кульминация. Пик эмоции совпадает с музыкальным пиком."},
+            {title:"Сцена 4: Финал", func:"outro", goal:"Образ, который остаётся после."}
+          ];
+        } else if(t === "letter") {
+          presets = [
+            {title:"Сцена 1: Введение", func:"intro", goal:"Начинаем с размышлений о своем состоянии и мыслях, создавая точку входа без пафоса."},
+            {title:"Сцена 2: Переход", func:"transition", goal:"В истории впервые появляется адресат как фигура, изменившая внутреннее состояние автора."},
+            {title:"Сцена 3: Наблюдения", func:"observations", goal:"Описание человека через живые детали, бытовые привычки и характерные нюансы поведения."},
+            {title:"Сцена 4: Кульминация", func:"climax", goal:"Осознание значимости человека и того, какое место он занимает в вашей жизни."},
+            {title:"Сцена 5: Финал", func:"final", goal:"Короткое и точное заключение одной фразой, оставляющее глубокое послевкусие."}
+          ];
+        } else { // story
+          presets = [
+            {title:"Сцена 1: Экспозиция", func:"exposition", goal:"Кто? Где? В каком состоянии? Мы знакомимся с героями."},
+            {title:"Сцена 2: Контекст", func:"context", goal:"Что для них важно. Чего они ждут. Формируется ценность происходящего."},
+            {title:"Сцена 3: Событие", func:"event", goal:"То ради чего всё затевалось. Поворот, момент, кульминация."},
+            {title:"Сцена 4: Рефлексия", func:"reflection", goal:"Эмоции после. Осознание. Что это значило."},
+            {title:"Сцена 5: Финал", func:"final", goal:"Закрытие истории. Иногда тихое. Иногда щемящее."}
+          ];
+        } 
+        
+        state.scenes = presets.map((p, idx) => ({
+          id: uid("SC"),
+          title: p.title,
+          func: p.func,
+          locationId: idx === 0 ? loc0 : loc1, 
+          goal: p.goal,
+          light: "Естественный",
+          sound: "Без синхрона",
+          props: "",
+          risks: "",
+          aShots: [],
+          bShots: []
+        }));
+        
+        state.project.sceneCount = state.scenes.length;
+        
+        save(); 
+        renderAll();
+        setStatus("Скелет создан: " + state.scenes.length + " сцен.");
+      }
+      
+      async function aiScenesFromStory(){
+        pullProjectFromUI();
+        const storyTxt = String(state.project.story||"").trim();
+        if(storyTxt.length < 10){ alert("Опишите сюжет подробнее."); return; }
+        if(state.locations.length === 0){ alert("Добавьте хотя бы 1 локацию."); return; }
+        
+        setStatus("AI (OpenRouter) думает...");
+        const t = state.project.contentType;
+        const n = Math.max(1, Number(state.project.sceneCount||1));
+        const funcs = (LIB.sceneFunctions[t]||[]).map(x=>x.v);
+        const locs = state.locations.map((l,i)=>`L${i+1}: ${l.name}`).join("\n");
+        
+        const prompt = `Ты — профи ассистент режиссёра. Сформируй JSON-список из ${n} сцен.
+Тип: ${t}. Локации: \n${locs}
+Сюжет: ${storyTxt}
+Функции (используй только эти): ${funcs.join(", ")}
+Верни ТОЛЬКО чистый JSON массив объектов: [{"title":"..","func":"..","locationIndex":1,"goal":"..","light":"..","sound":"..","props":"..","risks":".."}]`;
+        
+        try {
+          const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer v1.CmMKHHN0YXRpY2tleS1lMDBnbnFuazVjZ3MzNDFlN2oSIXNlcnZpY2VhY2NvdW50LWUwMHYycXdkbnB0cWoydGo1ajIMCIXg58sGEPaAx9cCOgsIheP_lgcQwL_tIUACWgNlMDA.AAAAAAAAAAHFzOoj0nkUfUMumFLsxgAjR-PEjUh53d7FKzqn29xJiNVeDYPp62TtjQRbpNxLJ9j7y6Ku2ask1Lkynl1IrXII",
+              "HTTP-Referer": "https://shotlist-engine.local", 
+              "X-Title": "Shotlist Engine",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
+              "messages": [{ "role": "user", "content": prompt }]
+            })
+          });
+          
+          if(!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.error?.message || `Ошибка ${response.status}`);
+          }
+          const data = await response.json();
+          let text = data.choices[0].message.content;
+          text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+          
+          const arr = JSON.parse(text.substring(text.indexOf('['), text.lastIndexOf(']') + 1));
+          
+          state.scenes = arr.slice(0, n).map((p, i)=>({
+            id: uid("SC"),
+            title: p.title || `Сцена ${i+1}`,
+            func: funcs.includes(p.func) ? p.func : funcs[0],
+            locationId: state.locations[(p.locationIndex-1) % state.locations.length]?.id || state.locations[0].id,
+            goal: p.goal || "",
+            light: p.light || "Естественный",
+            sound: p.sound || "Без синхрона",
+            props: p.props || "",
+            risks: p.risks || "",
+            aShots: [],
+            bShots: []
+          }));
+          
+          save(); renderAll();
+          setStatus("AI успешно сформировал план!");
+        } catch(err) {
+          console.error(err);
+          alert("Ошибка AI: " + err.message);
+          setStatus("Ошибка.");
+        }
+      }
+      
+      function renderScenes(){
+        const t = state.project.contentType, funcs = LIB.sceneFunctions[t] || [];
+        const locOpts = state.locations.map(l=>({v:l.id,t:l.name||"(без названия)"}));
+        const optList = (arr, sel)=>arr.map(o=>`<option value="${esc(o.v)}" ${o.v===sel?"selected":""}>${esc(o.t)}</option>`).join("");
+        const list = $("sceneList");
+        list.innerHTML = state.scenes.map((s, idx)=>`
+      <div class="item">
+        <div class="itemTop">
+          <div><div class="badge">SC${idx+1}</div></div>
+          <div class="btnrow"><button class="danger" data-del-sc="${s.id}">Удалить</button></div>
+        </div>
+        <div class="row two">
+          <div>
+            <label>Название сцены *</label>
+            <input type="text" value="${esc(s.title)}" data-sc-field="title" data-sc="${s.id}"/>
+          </div>
+          <div>
+            <label>Функция сцены *</label>
+            <select data-sc-field="func" data-sc="${s.id}">
+              ${funcs.map(f=>`<option value="${esc(f.v)}" ${f.v===s.func?"selected":""}>${esc(f.t)}</option>`).join("")}
+            </select>
+          </div>
+        </div>
+        <div class="row two">
+          <div>
+            <label>Локация *</label>
+            <select data-sc-field="locationId" data-sc="${s.id}">
+              <option value="">— выбрать —</option>
+              ${optList(locOpts, s.locationId)}
+            </select>
+          </div>
+        </div>
+        <div class="row three">
+          <div><label>Свет</label><select data-sc-field="light" data-sc="${s.id}">${LIB.light.map(x=>`<option value="${esc(x)}" ${x===s.light?"selected":""}>${esc(x)}</option>`).join("")}</select></div>
+          <div><label>Звук</label><select data-sc-field="sound" data-sc="${s.id}">${LIB.sound.map(x=>`<option value="${esc(x)}" ${x===s.sound?"selected":""}>${esc(x)}</option>`).join("")}</select></div>
+        </div>
+        <label>Краткое описание сцены *</label>
+        <input type="text" value="${esc(s.goal)}" data-sc-field="goal" data-sc="${s.id}" placeholder="Кратко: что происходит"/>
+        <details style="margin-top:10px">
+          <summary>Производственные заметки</summary>
+          <label>Реквизит</label><textarea data-sc-field="props" data-sc="${s.id}">${esc(s.props)}</textarea>
+          <label>Риски</label><textarea data-sc-field="risks" data-sc="${s.id}">${esc(s.risks)}</textarea>
+        </details>
+      </div>
+    `).join("");
+        
+        list.querySelectorAll("[data-sc-field]").forEach(el=>{
+          el.addEventListener("input", ()=>{
+            const id = el.getAttribute("data-sc"), field = el.getAttribute("data-sc-field");
+            const sc = state.scenes.find(x=>x.id===id); if(sc) sc[field]=el.value;
+            save();
+            renderScenesValidation();
+            renderBadges();
+          });
+          // Только при смене селектора можно перерисовать всё (не ломает ввод текста)
+          if(el.tagName === 'SELECT') {
+            el.onchange = () => renderScenes();
+          }
+        });
+        list.querySelectorAll("[data-del-sc]").forEach(btn=> btn.addEventListener("click", ()=> deleteScene(btn.getAttribute("data-del-sc")) ));
+      }
+      
+  function validateScenes(){
+    const blockers=[], warns=[], planned = Number(state.project.sceneCount||0);
+    if(state.scenes.length===0) blockers.push("Сцены: список пуст.");
+    state.scenes.forEach((s, idx)=>{
+      if(!s.title.trim()) blockers.push(`Сцены: SC${idx+1} без названия.`);
+      if(!s.func) blockers.push(`Сцены: SC${idx+1} без функции.`);
+      if(!s.locationId) blockers.push(`Сцены: SC${idx+1} без локации.`);
+      if(!s.goal.trim()) blockers.push(`Сцены: SC${idx+1} без описания сцены.`);
+    });
+    if(planned && state.scenes.length!==planned) warns.push(`Сцены: планировал ${planned}, сейчас ${state.scenes.length}.`);
+    return {blockers, warns};
+  }
+  function renderScenesValidation(){
+    const v = validateScenes(), badge=$("scBadge");
+    if(v.blockers.length){ badge.className="badge red"; badge.textContent="Блокирует"; }
+    else if(v.warns.length){ badge.className="badge yellow"; badge.textContent="Есть риски"; }
+    else { badge.className="badge green"; badge.textContent="Ок"; }
+    $("scIssues").classList.toggle("hidden", v.blockers.length===0 && v.warns.length===0);
+    $("scIssuesList").innerHTML=[...v.blockers,...v.warns].map(x=>`<li>${esc(x)}</li>`).join("");
+  }
+
+  // Shots
+  function ensureShotTags(sc){ (sc.aShots||[]).forEach((sh,i)=> sh.tag=`A${i+1}`); (sc.bShots||[]).forEach((sh,i)=> sh.tag=`B${i+1}`); }
+  function getNodes(sc){
+    ensureShotTags(sc);
+    const a=sc.aShots||[], nodes=[];
+    for(let i=0;i<a.length-1;i++) nodes.push({id:`${sc.id}_N${i+1}`, title:`Узел N${i+1}: ${a[i].tag} → ${a[i+1].tag}`});
+    return nodes;
+  }
+
+  function addAShot(scId){
+    const sc=state.scenes.find(s=>s.id===scId); if(!sc) return;
+    sc.aShots=sc.aShots||[]; if(sc.aShots.length>=6){ setStatus("Лимит A-roll на сцену: 6."); return; }
+    sc.aShots.push({id:uid("A"),tag:"",move:LIB.movements[0]||"Static",size:LIB.sizes[0]||"Medium",action:""});
+    ensureShotTags(sc); save(); renderAll();
+  }
+  function addBShot(scId){
+    const sc=state.scenes.find(s=>s.id===scId); if(!sc) return;
+    sc.bShots=sc.bShots||[]; const nodes=getNodes(sc);
+    sc.bShots.push({id:uid("B"),tag:"",linkType:nodes.length?"node":"ashot",linkId:nodes[0]?.id||sc.aShots?.[0]?.id||"",func:"cutcover",shotType:"Insert/Detail",action:""});
+    ensureShotTags(sc); save(); renderAll();
+  }
+  function deleteShot(scId, shotId){
+    const sc=state.scenes.find(s=>s.id===scId); if(!sc) return;
+    sc.aShots=(sc.aShots||[]).filter(x=>x.id!==shotId);
+    sc.bShots=(sc.bShots||[]).filter(x=>x.id!==shotId);
+    ensureShotTags(sc); save(); renderAll();
+  }
+  function updateShotField(scId, shotId, field, value){
+    const sc=state.scenes.find(s=>s.id===scId); if(!sc) return;
+    const all=[...(sc.aShots||[]),...(sc.bShots||[])]; const sh=all.find(x=>x.id===shotId); if(!sh) return;
+    sh[field]=value; save();
+  }
+
+  function renderBShotCard(sc, b, nodes, aShots){
+    const linkType=b.linkType||"node";
+    const linkOpts = linkType==="node" 
+      ? nodes.map(n=>`<option value="${esc(n.id)}" ${b.linkId===n.id?"selected":""}>${esc(n.title)}</option>`).join("")
+      : aShots.map(a=>`<option value="${esc(a.id)}" ${b.linkId===a.id?"selected":""}>${esc(a.tag)}: ${esc(a.action)}</option>`).join("");
+
+    return `
+      <div class="item" style="padding:12px; background:rgba(52,199,89,.06)">
+        <div class="itemTop"><div class="badge green">${esc(b.tag)} • B</div><button class="danger" data-del-shot="${sc.id}|${b.id}">Удалить</button></div>
+        <div class="row two">
+          <div><label>Привязка к</label><select data-shot="${sc.id}|${b.id}" data-field="linkType"><option value="node" ${linkType==="node"?"selected":""}>Узлу</option><option value="ashot" ${linkType==="ashot"?"selected":""}>A-roll</option></select></div>
+          <div><label>Элемент</label><select data-shot="${sc.id}|${b.id}" data-field="linkId">${linkOpts}</select></div>
+        </div>
+        <div class="row two">
+          <div><label>Функция</label><select data-shot="${sc.id}|${b.id}" data-field="func">${LIB.bFunctions.map(f=>`<option value="${esc(f.v)}" ${f.v===b.func?"selected":""}>${esc(f.t)}</option>`).join("")}</select></div>
+          <div><label>Тип</label><select data-shot="${sc.id}|${b.id}" data-field="shotType">${LIB.shotTypes.map(t=>`<option value="${esc(t)}" ${t===b.shotType?"selected":""}>${esc(t)}</option>`).join("")}</select></div>
+        </div>
+        <label>Действие</label><input type="text" value="${esc(b.action)}" data-shot="${sc.id}|${b.id}" data-field="action"/>
+      </div>`;
+  }
+
+      function renderShots(){
+        const root=$("shotsByScene"); root.innerHTML="";
+        state.scenes.forEach((sc, idx)=>{
+          ensureShotTags(sc);
+          const nodes=getNodes(sc);
+          const box=document.createElement("div"); box.className="item";
+          box.innerHTML=`
+        <div class="itemTop">
+          <div><div class="badge">SC${idx+1}</div> <b>${esc(sc.title)}</b></div>
+          <div class="btnrow">
+            <button class="primary" data-add-a="${sc.id}">+ A-roll</button>
+            <button class="good" data-add-b="${sc.id}">+ B-roll</button>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <div class="row two">
+            <div>
+              <h4 style="font-size:11px; color:var(--muted); text-transform:uppercase;">A-Roll (Скелет)</h4>
+              <div class="list">${(sc.aShots||[]).map(a=>`
+                <div class="item" style="background:rgba(255,45,85,.06); padding:8px;">
+                  <div class="itemTop"><div class="badge red">${esc(a.tag)}</div><button class="danger" style="padding:4px 8px" data-del-shot="${sc.id}|${a.id}">×</button></div>
+                  <div class="row two" style="margin-top:5px">
+                    <select data-shot="${sc.id}|${a.id}" data-field="move" style="font-size:11px">${LIB.movements.map(t=>`<option value="${esc(t)}" ${t===a.move?"selected":""}>${esc(t)}</option>`).join("")}</select>
+                    <select data-shot="${sc.id}|${a.id}" data-field="size" style="font-size:11px">${LIB.sizes.map(t=>`<option value="${esc(t)}" ${t===a.size?"selected":""}>${esc(t)}</option>`).join("")}</select>
+                  </div>
+                  <input type="text" value="${esc(a.action)}" data-shot="${sc.id}|${a.id}" data-field="action" placeholder="Действие" style="margin-top:5px; font-size:12px"/>
+                </div>`).join("") || '<div class="small">Добавьте A-roll</div>'}
+              </div>
+            </div>
+            <div>
+              <h4 style="font-size:11px; color:var(--muted); text-transform:uppercase;">B-Roll (Перебивки/Детали)</h4>
+              <div class="list">${(sc.bShots||[]).map(b=>renderBShotCard(sc, b, nodes, sc.aShots)).join("") || '<div class="small">Добавьте B-roll</div>'}</div>
+            </div>
+          </div>
+        </div>`;
+          root.appendChild(box);
+        });
+        root.querySelectorAll("[data-add-a]").forEach(btn=>btn.onclick=()=>addAShot(btn.dataset.addA));
+        root.querySelectorAll("[data-add-b]").forEach(btn=>btn.onclick=()=>addBShot(btn.dataset.addB));
+        root.querySelectorAll("[data-del-shot]").forEach(btn=>{btn.onclick=()=>{const[s,sh]=btn.dataset.delShot.split("|");deleteShot(s,sh);}});
+        root.querySelectorAll("[data-shot]").forEach(el=>{
+          const[s,sh]=el.dataset.shot.split("|"), f=el.dataset.field;
+          el.oninput=()=>updateShotField(s,sh,f,el.value);
+          el.onchange=()=>renderAll(); // Перерисовываем для обновления связок в селекторах
+        });
+      }
+      
+  function validateShots(){
+    const blockers=[], warns=[];
+    state.scenes.forEach(sc=>{
+      if((sc.aShots||[]).length===0) blockers.push(`Шоты: ${sc.title} — нет A-roll.`);
+      (sc.aShots||[]).forEach(a=>{ if(!a.action.trim()) blockers.push(`Шоты: ${sc.title} — ${a.tag} без действия.`); });
+    });
+    return {blockers, warns};
+  }
+
+  function renderBadges(){
+    const setB=(id,v)=>{ const el=$(id);
+      if(v.blockers.length){ el.className="badge red"; el.textContent="Блокирует"; }
+      else if(v.warns.length){ el.className="badge yellow"; el.textContent="Риски"; }
+      else { el.className="badge green"; el.textContent="Ок"; } };
+    setB("projBadge", validateProject());
+    setB("locBadge", validateLocations());
+    setB("scBadge", validateScenes());
+    setB("shBadge", validateShots());
+  }
+
+  function renderWizardLocks(){
+    if(state.step===0) { $("btnNext").disabled = false; return; }
+    $("btnNext").disabled = !canGoToStep(state.step + 1);
+  }
+
+  function validateAll(){
+    const vP=validateProject(), vL=validateLocations(), vS=validateScenes(), vSh=validateShots();
+    return {blockers:[...vP.blockers,...vL.blockers,...vS.blockers,...vSh.blockers], warns:[...vP.warns,...vL.warns,...vS.warns,...vSh.warns]};
+  }
+
+      function formatShotlistText(){
+        try {
+          const p = state.project;
+          let out = `ПРОЕКТ: ${p.name || "Без названия"}\n`;
+          out += `СЮЖЕТ: ${p.story || "—"}\n`;
+          out += `ПЛАН: Сцен — ${p.sceneCount}, Локаций — ${p.locCount}\n\n`;
+          
+          // Простой словарь перевода функций
+          const dict = {
+            "hook":"Хук/зацепка", "conflict":"Конфликт", "transition":"Переход", "process":"Процесс", "result":"Результат", "brand":"Бренд",
+            "setup":"Завязка", "turn":"Поворот", "climax":"Кульминация", "resolution":"Развязка",
+            "intro":"Интро", "performance":"Перформанс", "story":"Сюжет", "beauty":"Бьюти/детали", "outro":"Аутро", "intro":"Введение", 
+            "transition":"Переход", 
+            "observations":"Наблюдения", 
+            "climax":"Кульминация", 
+            "final":"Финал"
+          };
+          
+          state.scenes.forEach((sc, i)=>{
+            const loc = state.locations.find(l => l.id === sc.locationId);
+            const rusFunc = dict[sc.func] || sc.func; // Если нет в словаре, выведет как есть
+            
+            out += `СЦЕНА ${i+1}: ${sc.title.toUpperCase()}\n`;
+            out += `Функция: ${rusFunc} | Локация: ${loc ? loc.name : "—"}\n`;
+            out += `Задача: ${sc.goal || "—"}\n`;
+            out += `Техника: Свет: ${sc.light}, Звук: ${sc.sound}\n`;
+            if(sc.props) out += `Реквизит: ${sc.props}\n`;
+            
+            out += `\n[A-ROLL]\n`;
+            (sc.aShots||[]).forEach(a => out += `  ${a.tag}: ${a.action} (${a.size}, ${a.move})\n`);
+            
+            out += `\n[B-ROLL]\n`;
+            (sc.bShots||[]).forEach(b => out += `  ${b.tag}: ${b.action} (${b.shotType})\n`);
+            
+            out += `\n--------------------------------\n\n`;
+          });
+          return out;
+        } catch (e) {
+          console.error(e);
+          return "Ошибка генерации данных. Проверьте, заполнены ли все сцены.";
+        }
+      }
+      
+  function renderPrintStep(){
+    const all=validateAll(), ok=!all.blockers.length;
+    $("btnPrint").disabled=!ok; $("btnCopyMD").disabled=!ok;
+    $("printPreview").textContent = ok ? formatShotlistText() : "Исправьте ошибки для генерации.";
+    $("allIssues").classList.toggle("hidden", all.blockers.length===0 && all.warns.length===0);
+    $("allIssuesList").innerHTML=[...all.blockers,...all.warns].map(x=>`<li>${esc(x)}</li>`).join("");
+  }
+
+  function renderAll(){
+    syncProjectUI();
+    renderBadges();
+    renderWizardLocks();
+    if(state.step===1) renderLocations();
+    if(state.step===2) renderScenes();
+    if(state.step===3) renderShots();
+    if(state.step===4) renderPrintStep();
+    renderTabs();
+    showOnly(state.step);
+  }
+
+  $("btnPrev").onclick = ()=>gotoStep(state.step-1);
+  $("btnNext").onclick = ()=>{
+    pullProjectFromUI();
+    if(state.step < steps.length-1){
+      if(canGoToStep(state.step + 1)) gotoStep(state.step + 1);
+      else {
+        renderProjectValidation(); 
+        setStatus("Заполните обязательные поля!");
+      }
+    }
+  };
+
+  $("btnAddLoc").onclick = ()=>addLocation();
+  $("btnAddScene").onclick = ()=>addScene();
+  $("btnAutoScenes").onclick = ()=>autoSkeleton();
+  $("btnAiScenes").onclick = ()=>aiScenesFromStory();
+  $("btnValidate").onclick = ()=>renderPrintStep();
+  $("btnPrint").onclick = ()=>window.print();
+  $("btnCopyMD").onclick = ()=>navigator.clipboard.writeText(formatShotlistText());
+
+  function setStatus(m){ $("status").textContent=m; setTimeout(()=>$("status").textContent="Готов.",2000); }
+
+  load();
+  bindProject();
+  renderAll();
+      // Кнопка полной очистки данных
+      $("btnResetAll").onclick = () => {
+        if (confirm("Вы уверены, что хотите полностью очистить проект? Все данные будут удалены безвозвратно.")) {
+          // Очищаем локальное хранилище
+          localStorage.removeItem(LS_KEY);
+          
+          // Сбрасываем состояние до начального
+          state.step = 0;
+          state.project = {name:"", contentType:"story", durationSec:"", story:"", locCount:"", sceneCount:""};
+          state.locations = [];
+          state.scenes = [];
+          
+          // Перезагружаем страницу для полной очистки всех полей и фокусов
+          location.reload();
+        }
+        function smartOfflineSkeleton() {
+          const story = state.project.story.toLowerCase();
+          const n = Math.max(1, Number(state.project.sceneCount||1));
+          const t = state.project.contentType;
+          const funcs = LIB.sceneFunctions[t];
+          
+          const newScenes = [];
+          for(let i=0; i<n; i++) {
+            // Выбираем функцию по порядку
+            const f = funcs[i % funcs.length];
+            // Пытаемся угадать локацию (если в тексте есть 'улица', 'дом' и т.д.)
+            let locId = state.locations[0]?.id || "";
+            if(story.includes("улиц") && state.locations[1]) locId = state.locations[1].id;
+            
+            newScenes.push({
+              id: uid("SC"),
+              title: `${f.t} (Сцена ${i+1})`,
+              func: f.v,
+              locationId: locId,
+              goal: `Отработать ${f.t.toLowerCase()} согласно сюжету.`,
+              light: "Естественный", sound: "Без синхрона", props: "", risks: "",
+              aShots: [], bShots: []
+            });
+          }
+          state.scenes = newScenes;
+          save();
+          renderAll();
+          setStatus("Сцены созданы локально (офлайн-режим).");
+        }
+      };
+})();
+</script>
+</body>
+</html>
